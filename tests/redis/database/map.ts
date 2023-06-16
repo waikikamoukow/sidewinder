@@ -1,3 +1,4 @@
+import { Delay } from '@sidewinder/async'
 import { Assert } from '../../assert/index'
 import { resolveDatabase } from '../resolve'
 
@@ -121,6 +122,17 @@ describe('redis/RedisMap', () => {
     const value1 = await map.has('B')
     Assert.deepEqual(value0, true)
     Assert.deepEqual(value1, false)
+  })
+
+  it('Should clear expire when set', async () => {
+    const database = await resolveDatabase()
+    const map = database.map('vectors')
+    await map.set('A', [0, 0, 0])
+    await map.expire('A', 1)
+    await map.set('A', [1,0,0])
+    await Delay.wait(1200)
+    const expired = await map.get('A')
+    Assert.deepEqual(expired, [1,0,0])
   })
 
   // ---------------------------------------------------------
