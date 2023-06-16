@@ -141,10 +141,19 @@ export class MemoryStore implements Store {
     // Set Data
     this.#data.set(key, [value])
     
+    // Check if keeping existing timeout
+    if (options.keepTimeToLive) return true
+
     // Check if there's a timeout to clear
     const existentTimeout = this.#timeouts.get(key)
     if (existentTimeout) {
       clearTimeout(existentTimeout)
+    }
+
+    if (options.expireAfter) {
+      this.expire(key, options.expireAfter)
+    } else if (options.expireAfterMillis) {
+      this.expire(key, options.expireAfterMillis / 1000)
     }
     return true
   }

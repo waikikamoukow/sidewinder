@@ -28,6 +28,11 @@ THE SOFTWARE.
 
 export interface SetOptions {
   conditionalSet?: 'exists' | 'not-exists'
+  expireAfter?: number
+  expireAfterMillis?: number
+  //expireAt?: number
+  //expireAtMillis?: number
+  keepTimeToLive?: boolean
 }
 
 export interface Store {

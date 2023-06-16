@@ -124,15 +124,59 @@ describe('redis/RedisMap', () => {
     Assert.deepEqual(value1, false)
   })
 
+  it('Should expire values', async () => {
+    const database = await resolveDatabase()
+    const map = database.map('vectors')
+    await map.set('A', [0, 0, 0], { expireAfter: 1 })
+    const stored = await map.get('A')
+    Assert.deepEqual(stored, [0, 0, 0])
+    await Delay.wait(1100)
+    const expired = await map.get('A')
+    Assert.deepEqual(expired, undefined)
+  })
+
+  it('Should expire values with millis', async () => {
+    const database = await resolveDatabase()
+    const map = database.map('vectors')
+    await map.set('A', [0, 0, 0], { expireAfterMillis: 200 })
+    const stored = await map.get('A')
+    Assert.deepEqual(stored, [0, 0, 0])
+    await Delay.wait(300)
+    const expired = await map.get('A')
+    Assert.deepEqual(expired, undefined)
+  })
+
+  it('Should expire added values with millis', async () => {
+    const database = await resolveDatabase()
+    const map = database.map('vectors')
+    await map.set('A', [0, 0, 0], { expireAfterMillis: 200, conditionalSet: 'not-exists' })
+    const stored = await map.get('A')
+    Assert.deepEqual(stored, [0, 0, 0])
+    await Delay.wait(300)
+    const expired = await map.get('A')
+    Assert.deepEqual(expired, undefined)
+  })
+
   it('Should clear expire when set', async () => {
     const database = await resolveDatabase()
     const map = database.map('vectors')
-    await map.set('A', [0, 0, 0])
-    await map.expire('A', 1)
+    await map.set('A', [0, 0, 0], { expireAfterMillis: 200, conditionalSet: 'not-exists' })
     await map.set('A', [1,0,0])
-    await Delay.wait(1200)
+    await Delay.wait(300)
     const expired = await map.get('A')
     Assert.deepEqual(expired, [1,0,0])
+  })
+
+  it('Should not clear expire when set with keepTimeToLive', async () => {
+    const database = await resolveDatabase()
+    const map = database.map('vectors')
+    await map.set('A', [0, 0, 0], { expireAfterMillis: 200 })
+    await map.set('A', [1, 0, 0], { keepTimeToLive: true })
+    const stored = await map.get('A')
+    Assert.deepEqual(stored, [1, 0, 0])
+    await Delay.wait(300)
+    const expired = await map.get('A')
+    Assert.deepEqual(expired, undefined)
   })
 
   // ---------------------------------------------------------
