@@ -122,10 +122,12 @@ export class MemoryStore implements Store {
   }
 
   public async expire(key: string, seconds: number): Promise<void> {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       this.#data.delete(key)
       this.#timeouts.delete(key)
     }, seconds * 1000)
+
+    this.#timeouts.set(key, timeout)
   }
 
   public async set(key: string, value: string, options: SetOptions = {}): Promise<boolean> {
